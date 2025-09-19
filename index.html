@@ -3,200 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assistente de Obra - Ferramentas para Pedreiros</title>
-    <link rel="stylesheet" href="style.css">
+    <title>ConstrutorPro - Ferramenta para Pedreiros</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
-        <div class="container header-content">
-            <div class="logo">
-                <span>🧱 Assistente de Obra</span>
-            </div>
-            <button class="mobile-menu-btn">☰</button>
-            <nav class="mobile-nav" id="mobileNav">
-                <ul>
-                    <li><a href="#calculadora" class="nav-link active">Calculadora</a></li>
-                    <li><a href="#orcamento" class="nav-link">Orçamento</a></li>
-                    <li><a href="#seguranca" class="nav-link">Segurança</a></li>
-                    <li><a href="#projetos" class="nav-link">Projetos</a></li>
-                </ul>
-            </nav>
-        </div>
+        <h1>ConstrutorPro</h1>
+        <p>Ferramentas completas para profissionais da construção</p>
     </header>
 
-    <main class="container">
-        <section id="calculadora" class="section active">
+    <nav>
+        <ul>
+            <li><a href="#calculadora">Calculadora</a></li>
+            <li><a href="#orcamento">Orçamento</a></li>
+            <li><a href="#epis">EPIs</a></li>
+            <li><a href="#projetos">Projetos</a></li>
+            <li><a href="#dicas">Dicas</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <!-- Calculadora de Materiais -->
+        <section id="calculadora" class="section">
             <h2>Calculadora de Materiais</h2>
-            <div class="card">
-                <h3>Calcular Materiais para Parede</h3>
-                <form id="calc-form">
-                    <div class="form-group">
-                        <label for="comprimento">Comprimento da parede (m):</label>
-                        <input type="number" id="comprimento" step="0.01" min="0.1" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="altura">Altura da parede (m):</label>
-                        <input type="number" id="altura" step="0.01" min="0.1" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="tipo-tijolo">Tipo de Tijolo:</label>
-                        <select id="tipo-tijolo" required>
-                            <option value="6furos">Tijolo 6 furos (9x14x19cm)</option>
-                            <option value="8furos">Tijolo 8 furos (9x19x19cm)</option>
-                            <option value="baiano">Tijolo Baiano (5x15x25cm)</option>
-                            <option value="ceramico">Tijolo Cerâmico (5.5x11.5x24cm)</option>
-                        </select>
-                    </div>
-                    <button type="submit">Calcular Materiais</button>
-                </form>
-                
-                <div id="resultado-calc" class="resultado">
-                    <h3>Materiais Necessários:</h3>
-                    <div class="material-item" id="tijolos">Tijolos: <span></span></div>
-                    <div class="material-item" id="argamassa">Argamassa: <span></span> kg</div>
-                    <div class="material-item" id="cimento">Cimento: <span></span> kg</div>
-                    <div class="material-item" id="areia">Areia: <span></span> kg</div>
-                    <div class="material-item" id="cal">Cal: <span></span> kg</div>
+            <div class="calculator-form">
+                <div class="input-group">
+                    <label for="comprimento">Comprimento da Parede (m):</label>
+                    <input type="number" id="comprimento" step="0.01" min="0.1" required>
+                </div>
+                <div class="input-group">
+                    <label for="altura">Altura da Parede (m):</label>
+                    <input type="number" id="altura" step="0.01" min="0.1" required>
+                </div>
+                <div class="input-group">
+                    <label for="tijolo">Tipo de Tijolo/Bloco:</label>
+                    <select id="tijolo" required>
+                        <option value="">Selecione o tipo</option>
+                        <option value="baiano">Tijolo Baiano (9x19x19cm)</option>
+                        <option value="6furos">Tijolo 6 Furos (9x14x19cm)</option>
+                        <option value="8furos">Tijolo 8 Furos (9x19x19cm)</option>
+                        <option value="concreto14">Bloco Concreto 14cm (14x19x39cm)</option>
+                        <option value="concreto20">Bloco Concreto 20cm (20x19x39cm)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="rejunte">Espessura do Rejunte (cm):</label>
+                    <input type="number" id="rejunte" value="1.0" step="0.1" min="0.5" max="3.0" required>
+                </div>
+                <div class="input-group">
+                    <label for="margem">Margem de Segurança (%):</label>
+                    <input type="number" id="margem" value="10" step="1" min="0" max="20" required>
+                </div>
+                <div class="input-group">
+                    <label for="traco">Traço da Argamassa:</label>
+                    <select id="traco">
+                        <option value="1:3:1">1:3:1 (Cimento:Areia:Cal)</option>
+                        <option value="1:4:1">1:4:1 (Cimento:Areia:Cal)</option>
+                        <option value="1:2:1">1:2:1 (Cimento:Areia:Cal)</option>
+                    </select>
+                </div>
+                <button id="calcular-materiais">Calcular Materiais</button>
+            </div>
+
+            <div id="resultados-materiais" class="results hidden">
+                <h3>Resultados</h3>
+                <div class="result-item">
+                    <span>Quantidade de Tijolos:</span>
+                    <span id="quantidade-tijolos">0</span>
+                </div>
+                <div class="result-item">
+                    <span>Volume de Argamassa:</span>
+                    <span id="volume-argamassa">0 m³</span>
+                </div>
+                <div class="result-item">
+                    <span>Cimento necessário:</span>
+                    <span id="cimento">0 sacos</span>
+                </div>
+                <div class="result-item">
+                    <span>Areia necessária:</span>
+                    <span id="areia">0 m³</span>
+                </div>
+                <div class="result-item">
+                    <span>Cal necessário:</span>
+                    <span id="cal">0 sacos</span>
                 </div>
             </div>
         </section>
 
+        <!-- Ferramenta de Orçamento -->
         <section id="orcamento" class="section">
-            <h2>Cálculo de Orçamentos</h2>
-            <div class="card">
-                <h3>Calcular Orçamento de Obra</h3>
-                <form id="orcamento-form">
-                    <div class="form-group">
-                        <label for="tipo-servico">Tipo de Serviço:</label>
-                        <select id="tipo-servico" required>
-                            <option value="alvenaria">Alvenaria (por m²)</option>
-                            <option value="reboco">Reboco (por m²)</option>
-                            <option value="contrapiso">Contrapiso (por m²)</option>
-                            <option value="assentamento">Assentamento de Piso (por m²)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="area-servico">Área do Serviço (m²):</label>
-                        <input type="number" id="area-servico" step="0.01" min="0.1" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="custo-material">Custo de Materiais (R$/m²):</label>
-                        <input type="number" id="custo-material" step="0.01" min="0" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="mao-obra">Mão de Obra (R$/m²):</label>
-                        <input type="number" id="mao-obra" step="0.01" min="0" required>
-                    </div>
-                    <button type="submit">Calcular Orçamento</button>
-                </form>
+            <h2>Ferramenta de Orçamento</h2>
+            <div class="budget-form">
+                <h3>Dados da Obra</h3>
+                <div class="input-group">
+                    <label for="area-total">Área Total (m²):</label>
+                    <input type="number" id="area-total" step="0.01" min="1" required>
+                </div>
+                <div class="input-group">
+                    <label for="custo-mao-obra">Custo Mão de Obra (R$/m²):</label>
+                    <input type="number" id="custo-mao-obra" step="0.01" min="0" required>
+                </div>
                 
-                <div id="resultado-orcamento" class="resultado">
-                    <h3>Detalhes do Orçamento:</h3>
-                    <div class="material-item">Custo Total de Materiais: R$ <span id="total-materiais"></span></div>
-                    <div class="material-item">Custo Total de Mão de Obra: R$ <span id="total-mao-obra"></span></div>
-                    <div class="material-item">Custo Total do Serviço: R$ <span id="total-servico"></span></div>
+                <h3>Materiais</h3>
+                <div id="lista-materiais-orcamento">
+                    <!-- Gerado dinamicamente com base no cálculo de materiais -->
+                </div>
+                
+                <button id="adicionar-material">Adicionar Material</button>
+                <button id="calcular-orcamento">Calcular Orçamento</button>
+            </div>
+
+            <div id="resultados-orcamento" class="results hidden">
+                <h3>Resultado do Orçamento</h3>
+                <div class="result-item">
+                    <span>Custo Total de Materiais:</span>
+                    <span id="custo-materiais">R$ 0,00</span>
+                </div>
+                <div class="result-item">
+                    <span>Custo Total de Mão de Obra:</span>
+                    <span id="custo-mao-obra-total">R$ 0,00</span>
+                </div>
+                <div class="result-item total">
+                    <span>Valor Total do Orçamento:</span>
+                    <span id="valor-total">R$ 0,00</span>
                 </div>
             </div>
         </section>
 
-        <section id="seguranca" class="section">
-            <h2>Dicas de Segurança e EPIs</h2>
-            
-            <div class="card">
-                <h3>Equipamentos de Proteção Individual (EPIs)</h3>
-                <div class="epi-list">
-                    <div class="epi-item">
-                        <h4>👷 Capacete de Segurança</h4>
-                        <p>Protege a cabeça contra impactos de objetos caídos.</p>
-                    </div>
-                    <div class="epi-item">
-                        <h4>🥽 Óculos de Proteção</h4>
-                        <p>Protege os olhos contra poeira, partículas e respingos.</p>
-                    </div>
-                    <div class="epi-item">
-                        <h4>👂 Protetores Auriculares</h4>
-                        <p>Protege a audição contra ruídos excessivos.</p>
-                    </div>
-                    <div class="epi-item">
-                        <h4>🧤 Luvas de Proteção</h4>
-                        <p>Protege as mãos contra cortes, abrasões e produtos químicos.</p>
-                    </div>
-                    <div class="epi-item">
-                        <h4>👟 Botinas de Segurança</h4>
-                        <p>Protege os pés contra quedas de objetos e perfurações.</p>
-                    </div>
-                    <div class="epi-item">
-                        <h4>😷 Máscara de Proteção</h4>
-                        <p>Protege o sistema respiratório contra poeira e partículas.</p>
-                    </div>
+        <!-- EPIs -->
+        <section id="epis" class="section">
+            <h2>Equipamentos de Proteção Individual (EPIs)</h2>
+            <div class="epi-list">
+                <div class="epi-item">
+                    <h3>Capacete de Segurança</h3>
+                    <p>Protege a cabeça contra impactos de objetos caídos e choques acidentais.</p>
+                    <span class="epi-task">Uso obrigatório em toda a obra</span>
                 </div>
-            </div>
-            
-            <div class="card">
-                <h3>Dicas de Segurança no Trabalho</h3>
-                <div class="dica-seguranca">
-                    <h4>1. Organização do Local de Trabalho</h4>
-                    <p>Mantenha o canteiro de obras organizado e limpo. Materiais espalhados podem causar acidentes.</p>
+                <div class="epi-item">
+                    <h3>Óculos de Proteção</h3>
+                    <p>Protege os olhos contra poeira, partículas e respingos de produtos químicos.</p>
+                    <span class="epi-task">Especialmente durante cortes e lixamentos</span>
                 </div>
-                <div class="dica-seguranca">
-                    <h4>2. Uso Correto de Ferramentas</h4>
-                    <p>Utilize sempre as ferramentas adequadas para cada tarefa e verifique se estão em bom estado.</p>
+                <div class="epi-item">
+                    <h3>Luvas de Proteção</h3>
+                    <p>Protegem as mãos contra cortes, abrasões e produtos químicos.</p>
+                    <span class="epi-task">Para manipulação de materiais ásperos ou cortantes</span>
                 </div>
-                <div class="dica-seguranca">
-                    <h4>3. Cuidado com Eletricidade</h4>
-                    <p>Mantenha distância de fiações elétricas e utilize equipamentos com isolamento adequado.</p>
+                <div class="epi-item">
+                    <h3>Protetor Auricular</h3>
+                    <p>Protege a audição contra ruídos excessivos de equipamentos.</p>
+                    <span class="epi-task">Ao operar equipamentos ruidosos como betoneiras</span>
                 </div>
-                <div class="dica-seguranca">
-                    <h4>4. Trabalho em Altura</h4>
-                    <p>Utilize sempre cintos de segurança e plataformas adequadas para trabalhos em altura.</p>
+                <div class="epi-item">
+                    <h3>Botinas de Segurança</h3>
+                    <p>Protegem os pés contra quedas de objetos, perfurações e escorregões.</p>
+                    <span class="epi-task">Uso obrigatório em toda a obra</span>
                 </div>
-                <div class="dica-seguranca">
-                    <h4>5. Manipulação de Materiais</h4>
-                    <p>Use técnicas corretas de levantamento para evitar lesões nas costas.</p>
-                </div>
-                <div class="dica-seguranca">
-                    <h4>6. Hidratação e Proteção Solar</h4>
-                    <p>Mantenha-se hidratado e use protetor solar quando trabalhar ao ar livre.</p>
+                <div class="epi-item">
+                    <h3>Máscara de Proteção</h3>
+                    <p>Protege o sistema respiratório contra poeira e partículas suspensas.</p>
+                    <span class="epi-task">Durante cortes, demolições e aplicação de produtos</span>
                 </div>
             </div>
         </section>
 
+        <!-- Gerenciador de Projetos -->
         <section id="projetos" class="section">
-            <h2>Gerenciamento de Projetos</h2>
-            
-            <div class="card">
-                <h3>Adicionar Novo Projeto</h3>
-                <form id="novo-projeto-form">
-                    <div class="form-group">
+            <h2>Gerenciador de Projetos</h2>
+            <div class="project-manager">
+                <div class="project-form">
+                    <h3>Criar Novo Projeto</h3>
+                    <div class="input-group">
                         <label for="nome-projeto">Nome do Projeto:</label>
                         <input type="text" id="nome-projeto" required>
                     </div>
-                    <div class="form-group">
-                        <label for="descricao-projeto">Descrição:</label>
-                        <textarea id="descricao-projeto" rows="3"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="data-previsao">Previsão de Conclusão:</label>
-                        <input type="date" id="data-previsao" required>
-                    </div>
-                    <button type="submit">Adicionar Projeto</button>
-                </form>
+                    <button id="criar-projeto">Criar Projeto</button>
+                </div>
+
+                <div id="lista-projetos" class="project-list">
+                    <!-- Projetos serão adicionados dinamicamente -->
+                </div>
             </div>
-            
-            <div class="card">
-                <h3>Meus Projetos</h3>
-                <div id="lista-projetos">
-                    <!-- Projetos serão adicionados aqui via JavaScript -->
-                    <p class="sem-projetos">Nenhum projeto cadastrado ainda.</p>
+        </section>
+
+        <!-- Biblioteca de Dicas -->
+        <section id="dicas" class="section">
+            <h2>Biblioteca de Dicas e Tutoriais</h2>
+            <div class="tips-container">
+                <div class="tip-card">
+                    <h3>Como Assentar Tijolos Corretamente</h3>
+                    <p>Dicas essenciais para um assentamento perfeito e durável.</p>
+                    <button class="tip-button">Ler Mais</button>
+                </div>
+                <div class="tip-card">
+                    <h3>Preparação do Traço Ideal de Argamassa</h3>
+                    <p>Aprenda a calcular as proporções corretas para cada tipo de trabalho.</p>
+                    <button class="tip-button">Ler Mais</button>
+                </div>
+                <div class="tip-card">
+                    <h3>Como Evitar Trincas na Alvenaria</h3>
+                    <p>Técnicas preventivas para garantir a qualidade da construção.</p>
+                    <button class="tip-button">Ler Mais</button>
+                </div>
+                <div class="tip-card">
+                    <h3>Dicas para Acabamento Impecável</h3>
+                    <p>Como obter um reboco liso e preparar para a pintura.</p>
+                    <button class="tip-button">Ler Mais</button>
                 </div>
             </div>
         </section>
     </main>
 
     <footer>
-        <div class="container">
-            <p>Assistente de Obra &copy; 2023 - Ferramentas para pedreiros no dia a dia</p>
-        </div>
+        <p>ConstrutorPro &copy; 2023 - Ferramentas para profissionais da construção</p>
     </footer>
 
     <script src="script.js"></script>

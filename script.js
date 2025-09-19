@@ -1,190 +1,277 @@
-// Navegação entre seções
-document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        // Atualizar links ativos
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        this.classList.add('active');
-        
-        // Mostrar seção correspondente
-        const targetId = this.getAttribute('href').substring(1);
-        document.querySelectorAll('.section').forEach(section => {
-            section.classList.remove('active');
-        });
-        document.getElementById(targetId).classList.add('active');
-        
-        // Fechar menu mobile se aberto
-        document.getElementById('mobileNav').classList.remove('active');
-    });
+// Dados dos tipos de tijolos (dimensões em cm)
+const tiposTijolos = {
+    baiano: { comprimento: 19, altura: 9, espessura: 19, nome: "Tijolo Baiano" },
+    "6furos": { comprimento: 19, altura: 9, espessura: 14, nome: "Tijolo 6 Furos" },
+    "8furos": { comprimento: 19, altura: 9, espessura: 19, nome: "Tijolo 8 Furos" },
+    concreto14: { comprimento: 39, altura: 19, espessura: 14, nome: "Bloco Concreto 14cm" },
+    concreto20: { comprimento: 39, altura: 19, espessura: 20, nome: "Bloco Concreto 20cm" }
+};
+
+// Dados de projetos
+let projetos = JSON.parse(localStorage.getItem('projetos')) || [];
+
+// Inicialização quando o documento estiver carregado
+document.addEventListener('DOMContentLoaded', function() {
+    inicializarCalculadora();
+    inicializarOrcamento();
+    inicializarProjetos();
 });
 
-// Menu mobile
-document.querySelector('.mobile-menu-btn').addEventListener('click', function() {
-    document.getElementById('mobileNav').classList.toggle('active');
-});
+// Calculadora de Materiais
+function inicializarCalculadora() {
+    document.getElementById('calcular-materiais').addEventListener('click', calcularMateriais);
+}
 
-// Calculadora de materiais
-document.getElementById('calc-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
+function calcularMateriais() {
+    // Obter valores dos inputs
     const comprimento = parseFloat(document.getElementById('comprimento').value);
     const altura = parseFloat(document.getElementById('altura').value);
-    const tipoTijolo = document.getElementById('tipo-tijolo').value;
+    const tipoTijolo = document.getElementById('tijolo').value;
+    const espessuraRejunte = parseFloat(document.getElementById('rejunte').value) / 100; // Converter para metros
+    const margemSeguranca = parseFloat(document.getElementById('margem').value) / 100;
+    const traco = document.getElementById('traco').value;
+
+    // Validar entradas
+    if (!comprimento || !altura || !tipoTijolo) {
+        alert('Por favor, preencha todos os campos obrigatórios.');
+        return;
+    }
+
+    // Obter dados do tijolo selecionado
+    const tijolo = tiposTijolos[tipoTijolo];
+    
+    // Converter dimensões do tijolo para metros
+    const comprimentoTijolo = tijolo.comprimento / 100;
+    const alturaTijolo = tijolo.altura / 100;
     
     // Calcular área da parede
-    const area = comprimento * altura;
+    const areaParede = comprimento * altura;
     
-    // Valores de referência (podem ser ajustados)
-    let tijolosPorMetro = 0;
-    let argamassaPorMetro = 0;
+    // Calcular área do tijolo com rejunte
+    const comprimentoTijoloComRejunte = comprimentoTijolo + espessuraRejunte;
+    const alturaTijoloComRejunte = alturaTijolo + espessuraRejunte;
+    const areaTijoloComRejunte = comprimentoTijoloComRejunte * alturaTijoloComRejunte;
     
-    switch(tipoTijolo) {
-        case '6furos':
-            tijolosPorMetro = 40;
-            argamassaPorMetro = 25;
+    // Calcular quantidade de tijolos
+    let quantidadeTijolos = areaParede / areaTijoloComRejunte;
+    
+    // Aplicar margem de segurança
+    quantidadeTijolos = quantidadeTijolos * (1 + margemSeguranca);
+    
+    // Calcular volume de argamassa (estimativa simplificada)
+    const volumeArgamassa = areaParede * 0.02; // 2cm de espessura média
+    
+    // Calcular componentes da argamassa baseado no traço
+    let cimento, areia, cal;
+    
+    switch(traco) {
+        case '1:2:1':
+            // 1 parte cimento, 2 partes areia, 1 parte cal
+            cimento = volumeArgamassa / 4;
+            areia = volumeArgamassa / 2;
+            cal = volumeArgamassa / 4;
             break;
-        case '8furos':
-            tijolosPorMetro = 30;
-            argamassaPorMetro = 20;
+        case '1:4:1':
+            // 1 parte cimento, 4 partes areia, 1 parte cal
+            cimento = volumeArgamassa / 6;
+            areia = volumeArgamassa * 2/3;
+            cal = volumeArgamassa / 6;
             break;
-        case 'baiano':
-            tijolosPorMetro = 25;
-            argamassaPorMetro = 30;
-            break;
-        case 'ceramico':
-            tijolosPorMetro = 45;
-            argamassaPorMetro = 22;
+        case '1:3:1':
+        default:
+            // 1 parte cimento, 3 partes areia, 1 parte cal (padrão)
+            cimento = volumeArgamassa / 5;
+            areia = volumeArgamassa * 3/5;
+            cal = volumeArgamassa / 5;
             break;
     }
     
-    // Calcular quantidades
-    const qtdTijolos = Math.ceil(area * tijolosPorMetro * 1.1); // +10% para perdas
-    const qtdArgamassa = area * argamassaPorMetro;
-    const qtdCimento = qtdArgamassa * 0.2; // Proporção aproximada
-    const qtdAreia = qtdArgamassa * 0.6;   // Proporção aproximada
-    const qtdCal = qtdArgamassa * 0.2;     // Proporção aproximada
+    // Converter para unidades práticas
+    // 1 saco de cimento = 0,03 m³ | 1 saco de cal = 0,02 m³
+    const sacosCimento = Math.ceil(cimento / 0.03);
+    const sacosCal = Math.ceil(cal / 0.02);
     
     // Exibir resultados
-    document.getElementById('tijolos').querySelector('span').textContent = qtdTijolos;
-    document.getElementById('argamassa').querySelector('span').textContent = qtdArgamassa.toFixed(2);
-    document.getElementById('cimento').querySelector('span').textContent = qtdCimento.toFixed(2);
-    document.getElementById('areia').querySelector('span').textContent = qtdAreia.toFixed(2);
-    document.getElementById('cal').querySelector('span').textContent = qtdCal.toFixed(2);
+    document.getElementById('quantidade-tijolos').textContent = Math.ceil(quantidadeTijolos);
+    document.getElementById('volume-argamassa').textContent = volumeArgamassa.toFixed(3) + ' m³';
+    document.getElementById('cimento').textContent = sacosCimento + ' sacos';
+    document.getElementById('areia').textContent = areia.toFixed(3) + ' m³';
+    document.getElementById('cal').textContent = sacosCal + ' sacos';
     
-    document.getElementById('resultado-calc').classList.add('mostrar');
-});
-
-// Calculadora de orçamento
-document.getElementById('orcamento-form').addEventListener('submit', function(e) {
-    e.preventDefault();
+    // Mostrar resultados
+    document.getElementById('resultados-materiais').classList.remove('hidden');
     
-    const tipoServico = document.getElementById('tipo-servico').value;
-    const areaServico = parseFloat(document.getElementById('area-servico').value);
-    const custoMaterial = parseFloat(document.getElementById('custo-material').value);
-    const maoObra = parseFloat(document.getElementById('mao-obra').value);
-    
-    // Calcular totais
-    const totalMateriais = areaServico * custoMaterial;
-    const totalMaoObra = areaServico * maoObra;
-    const totalServico = totalMateriais + totalMaoObra;
-    
-    // Exibir resultados
-    document.getElementById('total-materiais').textContent = totalMateriais.toFixed(2);
-    document.getElementById('total-mao-obra').textContent = totalMaoObra.toFixed(2);
-    document.getElementById('total-servico').textContent = totalServico.toFixed(2);
-    
-    document.getElementById('resultado-orcamento').classList.add('mostrar');
-});
-
-// Gerenciamento de projetos
-document.getElementById('novo-projeto-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const nomeProjeto = document.getElementById('nome-projeto').value;
-    const descricaoProjeto = document.getElementById('descricao-projeto').value;
-    const dataPrevisao = document.getElementById('data-previsao').value;
-    
-    // Criar elemento do projeto
-    const projetoDiv = document.createElement('div');
-    projetoDiv.className = 'projeto-item';
-    projetoDiv.innerHTML = `
-        <h4>${nomeProjeto}</h4>
-        <p>${descricaoProjeto}</p>
-        <p><strong>Previsão de conclusão:</strong> ${formatarData(dataPrevisao)}</p>
-        <div class="progresso-obra">
-            <div class="progresso-barra" style="width: 0%">0%</div>
-        </div>
-        <h4>Tarefas:</h4>
-        <div class="tarefas-lista">
-            <div class="tarefa-item">
-                <input type="checkbox" id="tarefa-1" onchange="atualizarProgresso(this)">
-                <label for="tarefa-1">Fundação</label>
-            </div>
-            <div class="tarefa-item">
-                <input type="checkbox" id="tarefa-2" onchange="atualizarProgresso(this)">
-                <label for="tarefa-2">Alvenaria</label>
-            </div>
-            <div class="tarefa-item">
-                <input type="checkbox" id="tarefa-3" onchange="atualizarProgresso(this)">
-                <label for="tarefa-3">Reboco</label>
-            </div>
-            <div class="tarefa-item">
-                <input type="checkbox" id="tarefa-4" onchange="atualizarProgresso(this)">
-                <label for="tarefa-4">Instalações</label>
-            </div>
-            <div class="tarefa-item">
-                <input type="checkbox" id="tarefa-5" onchange="atualizarProgresso(this)">
-                <label for="tarefa-5">Acabamento</label>
-            </div>
-        </div>
-        <button onclick="removerProjeto(this)" style="margin-top: 10px; background-color: var(--warning-color)">Remover Projeto</button>
-    `;
-    
-    // Adicionar à lista de projetos
-    const listaProjetos = document.getElementById('lista-projetos');
-    const semProjetos = listaProjetos.querySelector('.sem-projetos');
-    
-    if (semProjetos) {
-        semProjetos.remove();
-    }
-    
-    listaProjetos.appendChild(projetoDiv);
-    
-    // Limpar formulário
-    this.reset();
-});
-
-// Função para formatar data
-function formatarData(data) {
-    const partes = data.split('-');
-    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    // Atualizar orçamento com os materiais calculados
+    atualizarMateriaisOrcamento(tijolo.nome, Math.ceil(quantidadeTijolos), sacosCimento, areia, sacosCal);
 }
 
-// Função para atualizar progresso
-function atualizarProgresso(checkbox) {
-    const tarefas = checkbox.parentElement.parentElement.querySelectorAll('.tarefa-item');
-    const checkboxes = checkbox.parentElement.parentElement.querySelectorAll('input[type="checkbox"]');
+// Ferramenta de Orçamento
+function inicializarOrcamento() {
+    document.getElementById('calcular-orcamento').addEventListener('click', calcularOrcamento);
+    document.getElementById('adicionar-material').addEventListener('click', adicionarMaterialPersonalizado);
+}
+
+function atualizarMateriaisOrcamento(nomeTijolo, qtdTijolos, sacosCimento, volumeAreia, sacosCal) {
+    const listaMateriais = document.getElementById('lista-materiais-orcamento');
+    listaMateriais.innerHTML = '';
     
-    let concluidas = 0;
-    checkboxes.forEach(cb => {
-        if (cb.checked) concluidas++;
+    // Adicionar tijolos
+    adicionarItemOrcamento(listaMateriais, nomeTijolo, qtdTijolos, 'unidade', 0);
+    
+    // Adicionar cimento
+    adicionarItemOrcamento(listaMateriais, 'Cimento', sacosCimento, 'saco', 25);
+    
+    // Adicionar areia
+    adicionarItemOrcamento(listaMateriais, 'Areia', volumeAreia, 'm³', 60);
+    
+    // Adicionar cal
+    adicionarItemOrcamento(listaMateriais, 'Cal', sacosCal, 'saco', 15);
+}
+
+function adicionarItemOrcamento(container, nome, quantidade, unidade, precoUnitario) {
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'material-item';
+    itemDiv.innerHTML = `
+        <div class="input-group">
+            <label>${nome}:</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="number" value="${quantidade}" step="1" min="0" class="quantidade" placeholder="Quantidade" style="flex: 1;">
+                <input type="number" value="${precoUnitario}" step="0.01" min="0" class="preco" placeholder="Preço unitário" style="flex: 1;">
+                <span style="line-height: 2.5;">${unidade}</span>
+            </div>
+        </div>
+    `;
+    container.appendChild(itemDiv);
+}
+
+function adicionarMaterialPersonalizado() {
+    const listaMateriais = document.getElementById('lista-materiais-orcamento');
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'material-item';
+    itemDiv.innerHTML = `
+        <div class="input-group">
+            <label>Material Personalizado:</label>
+            <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                <input type="text" class="nome-material" placeholder="Nome do material" style="flex: 1;">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <input type="number" value="0" step="1" min="0" class="quantidade" placeholder="Quantidade" style="flex: 1;">
+                <input type="number" value="0" step="0.01" min="0" class="preco" placeholder="Preço unitário" style="flex: 1;">
+                <input type="text" class="unidade" placeholder="Unidade" style="flex: 1;">
+            </div>
+        </div>
+    `;
+    listaMateriais.appendChild(itemDiv);
+}
+
+function calcularOrcamento() {
+    const areaTotal = parseFloat(document.getElementById('area-total').value) || 0;
+    const custoMaoObra = parseFloat(document.getElementById('custo-mao-obra').value) || 0;
+    
+    // Calcular custo de mão de obra
+    const custoMaoObraTotal = areaTotal * custoMaoObra;
+    
+    // Calcular custo de materiais
+    let custoMateriaisTotal = 0;
+    const itensMateriais = document.querySelectorAll('.material-item');
+    
+    itensMateriais.forEach(item => {
+        const quantidade = parseFloat(item.querySelector('.quantidade').value) || 0;
+        const preco = parseFloat(item.querySelector('.preco').value) || 0;
+        custoMateriaisTotal += quantidade * preco;
     });
     
-    const percentual = Math.round((concluidas / tarefas.length) * 100);
-    const barraProgresso = checkbox.closest('.projeto-item').querySelector('.progresso-barra');
+    // Calcular total do orçamento
+    const orcamentoTotal = custoMateriaisTotal + custoMaoObraTotal;
     
-    barraProgresso.style.width = `${percentual}%`;
-    barraProgresso.textContent = `${percentual}%`;
+    // Exibir resultados
+    document.getElementById('custo-materiais').textContent = `R$ ${custoMateriaisTotal.toFixed(2)}`;
+    document.getElementById('custo-mao-obra-total').textContent = `R$ ${custoMaoObraTotal.toFixed(2)}`;
+    document.getElementById('valor-total').textContent = `R$ ${orcamentoTotal.toFixed(2)}`;
+    
+    // Mostrar resultados
+    document.getElementById('resultados-orcamento').classList.remove('hidden');
 }
 
-// Função para remover projeto
-function removerProjeto(botao) {
-    const projeto = botao.closest('.projeto-item');
-    projeto.remove();
+// Gerenciador de Projetos
+function inicializarProjetos() {
+    document.getElementById('criar-projeto').addEventListener('click', criarProjeto);
+    carregarProjetos();
+}
+
+function criarProjeto() {
+    const nomeProjeto = document.getElementById('nome-projeto').value.trim();
     
-    const listaProjetos = document.getElementById('lista-projetos');
-    if (listaProjetos.children.length === 0) {
-        listaProjetos.innerHTML = '<p class="sem-projetos">Nenhum projeto cadastrado ainda.</p>';
+    if (!nomeProjeto) {
+        alert('Por favor, informe um nome para o projeto.');
+        return;
     }
+    
+    const novoProjeto = {
+        id: Date.now(),
+        nome: nomeProjeto,
+        etapas: [],
+        dataCriacao: new Date().toISOString()
+    };
+    
+    projetos.push(novoProjeto);
+    salvarProjetos();
+    carregarProjetos();
+    
+    // Limpar campo
+    document.getElementById('nome-projeto').value = '';
+}
+
+function carregarProjetos() {
+    const listaProjetos = document.getElementById('lista-projetos');
+    listaProjetos.innerHTML = '';
+    
+    if (projetos.length === 0) {
+        listaProjetos.innerHTML = '<p>Nenhum projeto criado ainda.</p>';
+        return;
+    }
+    
+    projetos.forEach(projeto => {
+        const projetoElement = document.createElement('div');
+        projetoElement.className = 'project-item';
+        projetoElement.innerHTML = `
+            <h3>${projeto.nome}</h3>
+            <p>Criado em: ${new Date(projeto.dataCriacao).toLocaleDateString()}</p>
+            <button class="btn-ver-projeto" data-id="${projeto.id}">Ver Detalhes</button>
+            <button class="btn-excluir-projeto" data-id="${projeto.id}">Excluir</button>
+        `;
+        listaProjetos.appendChild(projetoElement);
+    });
+    
+    // Adicionar event listeners aos botões
+    document.querySelectorAll('.btn-ver-projeto').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = parseInt(this.getAttribute('data-id'));
+            verProjeto(id);
+        });
+    });
+    
+    document.querySelectorAll('.btn-excluir-projeto').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = parseInt(this.getAttribute('data-id'));
+            excluirProjeto(id);
+        });
+    });
+}
+
+function verProjeto(id) {
+    // Implementar visualização detalhada do projeto
+    alert(`Visualizando projeto ${id}. Esta funcionalidade será implementada em uma versão futura.`);
+}
+
+function excluirProjeto(id) {
+    if (confirm('Tem certeza que deseja excluir este projeto?')) {
+        projetos = projetos.filter(projeto => projeto.id !== id);
+        salvarProjetos();
+        carregarProjetos();
+    }
+}
+
+function salvarProjetos() {
+    localStorage.setItem('projetos', JSON.stringify(projetos));
 }
