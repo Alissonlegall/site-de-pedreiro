@@ -30,12 +30,10 @@ document.getElementById('calc-form').addEventListener('submit', function(e) {
     
     const comprimento = parseFloat(document.getElementById('comprimento').value);
     const altura = parseFloat(document.getElementById('altura').value);
-    const quantidadeParedes = parseInt(document.getElementById('quantidade-paredes').value);
     const tipoTijolo = document.getElementById('tipo-tijolo').value;
     
-    // Calcular área total das paredes
-    const areaParede = comprimento * altura;
-    const areaTotal = areaParede * quantidadeParedes;
+    // Calcular área da parede
+    const area = comprimento * altura;
     
     // Valores de referência (podem ser ajustados)
     let tijolosPorMetro = 0;
@@ -61,8 +59,8 @@ document.getElementById('calc-form').addEventListener('submit', function(e) {
     }
     
     // Calcular quantidades
-    const qtdTijolos = Math.ceil(areaTotal * tijolosPorMetro * 1.1); // +10% para perdas
-    const qtdArgamassa = areaTotal * argamassaPorMetro;
+    const qtdTijolos = Math.ceil(area * tijolosPorMetro * 1.1); // +10% para perdas
+    const qtdArgamassa = area * argamassaPorMetro;
     const qtdCimento = qtdArgamassa * 0.2; // Proporção aproximada
     const qtdAreia = qtdArgamassa * 0.6;   // Proporção aproximada
     const qtdCal = qtdArgamassa * 0.2;     // Proporção aproximada
@@ -99,26 +97,6 @@ document.getElementById('orcamento-form').addEventListener('submit', function(e)
     document.getElementById('resultado-orcamento').classList.add('mostrar');
 });
 
-// Adicionar campos de material
-document.getElementById('adicionar-material').addEventListener('click', function() {
-    const materiaisDiv = document.getElementById('materiais-projeto');
-    const novoMaterial = document.createElement('div');
-    novoMaterial.className = 'material-projeto';
-    novoMaterial.innerHTML = `
-        <input type="text" placeholder="Nome do material" class="material-nome">
-        <input type="number" placeholder="Quantidade" min="1" class="material-quantidade">
-        <input type="number" placeholder="Preço unitário (R$)" step="0.01" min="0" class="material-preco">
-        <button type="button" class="remover-material" onclick="removerMaterial(this)">×</button>
-    `;
-    materiaisDiv.appendChild(novoMaterial);
-});
-
-// Função para remover material
-function removerMaterial(botao) {
-    const materialDiv = botao.closest('.material-projeto');
-    materialDiv.remove();
-}
-
 // Gerenciamento de projetos
 document.getElementById('novo-projeto-form').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -127,66 +105,13 @@ document.getElementById('novo-projeto-form').addEventListener('submit', function
     const descricaoProjeto = document.getElementById('descricao-projeto').value;
     const dataPrevisao = document.getElementById('data-previsao').value;
     
-    // Coletar informações dos materiais
-    const materiais = [];
-    const materiaisElements = document.querySelectorAll('.material-projeto');
-    
-    materiaisElements.forEach(materialEl => {
-        const nome = materialEl.querySelector('.material-nome').value;
-        const quantidade = materialEl.querySelector('.material-quantidade').value;
-        const preco = materialEl.querySelector('.material-preco').value;
-        
-        if (nome && quantidade && preco) {
-            materiais.push({
-                nome: nome,
-                quantidade: quantidade,
-                preco: preco,
-                total: (quantidade * preco).toFixed(2)
-            });
-        }
-    });
-    
-    // Calcular custo total dos materiais
-    const custoTotalMateriais = materiais.reduce((total, material) => {
-        return total + parseFloat(material.total);
-    }, 0);
-    
-    // Criar elemento do projeto com informações de materiais
+    // Criar elemento do projeto
     const projetoDiv = document.createElement('div');
     projetoDiv.className = 'projeto-item';
-    
-    let materiaisHTML = '';
-    if (materiais.length > 0) {
-        materiaisHTML = `
-            <h4>Materiais:</h4>
-            <table class="tabela-materiais">
-                <tr>
-                    <th>Material</th>
-                    <th>Quantidade</th>
-                    <th>Preço Unit.</th>
-                    <th>Total</th>
-                </tr>
-                ${materiais.map(material => `
-                    <tr>
-                        <td>${material.nome}</td>
-                        <td>${material.quantidade}</td>
-                        <td>R$ ${material.preco}</td>
-                        <td>R$ ${material.total}</td>
-                    </tr>
-                `).join('')}
-                <tr class="total-row">
-                    <td colspan="3"><strong>Total Materiais:</strong></td>
-                    <td><strong>R$ ${custoTotalMateriais.toFixed(2)}</strong></td>
-                </tr>
-            </table>
-        `;
-    }
-    
     projetoDiv.innerHTML = `
         <h4>${nomeProjeto}</h4>
         <p>${descricaoProjeto}</p>
         <p><strong>Previsão de conclusão:</strong> ${formatarData(dataPrevisao)}</p>
-        ${materiaisHTML}
         <div class="progresso-obra">
             <div class="progresso-barra" style="width: 0%">0%</div>
         </div>
@@ -226,16 +151,8 @@ document.getElementById('novo-projeto-form').addEventListener('submit', function
     
     listaProjetos.appendChild(projetoDiv);
     
-    // Limpar formulário e materiais
+    // Limpar formulário
     this.reset();
-    document.getElementById('materiais-projeto').innerHTML = `
-        <div class="material-projeto">
-            <input type="text" placeholder="Nome do material" class="material-nome">
-            <input type="number" placeholder="Quantidade" min="1" class="material-quantidade">
-            <input type="number" placeholder="Preço unitário (R$)" step="0.01" min="0" class="material-preco">
-            <button type="button" class="remover-material" onclick="removerMaterial(this)">×</button>
-        </div>
-    `;
 });
 
 // Função para formatar data
